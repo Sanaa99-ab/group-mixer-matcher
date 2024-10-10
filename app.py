@@ -156,7 +156,8 @@ def test():
 
 # Step 1: Extract Features with Domain and Skills Weights
 def refine_feature_matrix(df, domain_weight=3, skill_weight=1):
-    enc = OneHotEncoder(sparse=False)
+  
+    enc = OneHotEncoder(sparse_output=False)
     tfidf_vectorizer = TfidfVectorizer()
 
     domain_encoded = enc.fit_transform(df[['Domain']]) * domain_weight
