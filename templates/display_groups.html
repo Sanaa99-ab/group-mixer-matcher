@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Matching Groups</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .voila-text {
+            text-align: center;
+            font-size: 2.2em;
+            color: #e91e63;
+            animation: voila-animation 2s ease-out forwards;
+            margin-bottom: 20px;
+        }
+
+        @keyframes voila-animation {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Grid layout for cards */
+        .groups-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 90vw;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        /* Card styling */
+        .group-card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 600px;
+            text-align: left;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            transform: scale(0);
+            animation: show-card 0.5s forwards ease-out;
+        }
+
+        .group-card:nth-child(odd) {
+            animation-delay: 0.3s;
+        }
+
+        .group-card:nth-child(even) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes show-card {
+            0% { opacity: 0; transform: translateY(50px) scale(0.5); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .group-card h3 {
+            margin: 0;
+            padding: 5px;
+            background-color: #008080; /* Teal color */
+            color: white;
+            border-radius: 5px;
+            font-size: 1.1em;
+            text-align: center; /* Center the group name */
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        ul li {
+            margin-right: 10px;
+            margin-bottom: 3px; /* Added extra spacing between lines */
+            white-space: normal;
+        }
+
+        .student-name {
+            color: green !important; /* Ensure this rule is prioritized */
+        }
+
+        .professional-name {
+            color: navy !important; /* Ensure this rule is prioritized */
+        }
+
+        /* Confetti falling */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: pink;
+            opacity: 0.7;
+            animation: fall 3s linear infinite;
+        }
+
+        .confetti.blue {
+            background-color: lightblue;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Ensure scrolling */
+        #groups-container {
+            padding-bottom: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Celebration Text -->
+    <div class="voila-text">Voilà! 🎉 Discover your matching group and dive into shared conversations!</div>
+
+    <!-- Confetti Container -->
+    <div id="confetti-container" class="hidden"></div>
+
+    <!-- Display groups if available -->
+    <div id="groups-container">
+        {% if groups %}
+            <div class="groups-wrapper">
+                {% for group_id, members in groups.items() %}
+                    <div class="group-card">
+                        <h3>Group {{ group_id + 1 }}</h3>
+                        <ul>
+                            {% for member in members %}
+                                <li>
+                                    <span class="{% if member['Role'] == 'Student' %}student-name{% else %}professional-name{% endif %}">
+                                        {{ member['Name'] }}
+                                    </span> - {{ member['Skills'] }}{% if not loop.last %}, {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Trigger confetti and cards animation on page load
+        window.onload = function() {
+            startConfetti();
+        };
+
+        // Function to generate confetti
+        function startConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            confettiContainer.classList.remove('hidden');
+
+            for (let i = 0; i < 100; i++) {
+                let confetti = document.createElement('div');
+                confetti.className = 'confetti' + (Math.random() < 0.5 ? ' blue' : '');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                confettiContainer.appendChild(confetti);
+            }
+
+            // Remove confetti after 5 seconds
+            setTimeout(() => {
+                confettiContainer.innerHTML = '';
+                confettiContainer.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

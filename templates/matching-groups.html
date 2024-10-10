@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Group Matcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .group-card {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px;
+            width: 250px;
+            display: inline-block;
+            vertical-align: top;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px #aaa;
+        }
+        .group-card h3 {
+            margin: 0;
+            padding: 5px;
+            background-color: #f4f4f4;
+            border-radius: 4px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            padding: 5px;
+            margin: 5px 0;
+        }
+        .btn-upload, .file-input {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-upload {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        .file-input {
+            border: 1px solid #007bff;
+        }
+        .file-input:hover, .btn-upload:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Your Dataset</h1>
+    
+    <!-- Form for uploading CSV file -->
+    <form action="/upload-dataset" method="POST" enctype="multipart/form-data">
+        <input type="file" name="dataset" accept=".csv" required class="file-input">
+        <button type="submit" class="btn-upload">Upload Dataset</button>
+    </form>
+
+</body>
+</html>

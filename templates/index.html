@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Networking Group Mixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg text-center max-w-5xl">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold text-red-600">Networking Group Mixer</h1>
+            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg" id="create-btn">
+                Create Groups
+            </button>
+        </div>
+
+        <!-- Form Inputs -->
+        <div class="flex flex-wrap justify-between mb-6">
+            
+            <!-- Group Size Input -->
+            <div class="w-full sm:w-1/3 mb-4 sm:mb-0">
+                <label for="group-size" class="block text-lg text-gray-700">Group Size</label>
+                <input type="number" id="group-size" value="5" min="1" class="border border-gray-300 rounded-lg p-2 w-full">
+            </div>
+
+            <!-- Max Students Per Group -->
+            <div class="w-full sm:w-1/3 mb-4 sm:mb-0 px-0 sm:px-2">
+                <label for="max-students" class="block text-lg text-gray-700">Max Students Per Group</label>
+                <input type="number" id="max-students" value="2" min="1" class="border border-gray-300 rounded-lg p-2 w-full">
+            </div>
+
+            <!-- Timer Input -->
+            <div class="w-full sm:w-1/3">
+                <label for="timer-input" class="block text-lg text-gray-700">Change Groups Every (mm:ss)</label>
+                <input type="text" id="timer-input" value="15:00" class="border border-gray-300 rounded-lg p-2 w-full">
+            </div>
+        </div>
+
+        <!-- Professionals & Students Input -->
+        <div class="flex flex-wrap justify-between">
+            
+            <!-- Professionals -->
+            <div class="w-full sm:w-1/2 mb-4 sm:mb-0 pr-0 sm:pr-2">
+                <h2 class="text-xl text-blue-600">Add Professionals</h2>
+                <textarea id="professionals-input" rows="4" class="border border-gray-300 rounded-lg p-2 w-full" placeholder="Enter professionals' names, one per line..."></textarea>
+            </div>
+
+            <!-- Students -->
+            <div class="w-full sm:w-1/2 pl-0 sm:pl-2">
+                <h2 class="text-xl text-green-600">Add Students</h2>
+                <textarea id="students-input" rows="4" class="border border-gray-300 rounded-lg p-2 w-full" placeholder="Enter students' names, one per line..."></textarea>
+            </div>
+        </div>
+
+        <!-- Countdown Display -->
+        <div id="countdown-display" class="text-2xl font-bold text-red-600 mt-6 mb-5">Next Group Change in: 00:00</div>
+        
+        <!-- Display Generated Groups -->
+        <div id="groups-container" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        
+        
+        <!-- Log Buttons and Display -->
+        <div class="mt-6">
+    <button id="shuffle-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+        Shuffle Groups
+    </button>
+    <button id="stop-shuffle-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">
+        Stop Timer
+    </button>
+    <button id="download-log-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">
+        Download Log
+    </button>
+    <button id="clear-log-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg">
+        Clear Log
+    </button>
+    <button id="show-log-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg">
+        Show Log
+    </button>
+    <!-- Button to start generating groups -->
+    <button id="generate-groups-btn" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg">Find Best Match</button>
+</div>
+
+
+        <!-- Log Display -->
+        <div id="log-container" class="bg-gray-100 p-4 mt-4 rounded-lg hidden">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interval</th>
+                    </tr>
+                </thead>
+                <tbody id="log-entries"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let countdownInterval;
+        let isShuffling = true;
+
+        // Start Timer
+        function startTimer(duration) {
+            let timeRemaining = duration;
+        
+            clearInterval(countdownInterval);
+        
+            countdownInterval = setInterval(() => {
+                const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+                const seconds = String(timeRemaining % 60).padStart(2, '0');
+                document.getElementById('countdown-display').textContent = `Next Group Change in: ${minutes}:${seconds}`;
+        
+                if (--timeRemaining < 0 && isShuffling) {
+                    clearInterval(countdownInterval);
+                    createGroups();
+                }
+            }, 1000);
+        }
+
+        // Toggle Shuffle Start/Stop
+function toggleShuffle() {
+    const stopButton = document.getElementById('stop-shuffle-btn');
+    
+    // If shuffling, stop the timer
+    if (isShuffling) {
+        clearInterval(countdownInterval);
+        isShuffling = false;
+        stopButton.textContent = 'Resume Timer';
+        stopButton.classList.replace('bg-red-500', 'bg-green-500'); // Change color to green
+    } else { // If stopped, start the timer again
+        isShuffling = true;
+        stopButton.textContent = 'Stop Timer';
+        stopButton.classList.replace('bg-green-500', 'bg-red-500'); // Change color to red
+        
+        // Restart the timer with the remaining duration
+        const timerInput = document.getElementById('timer-input').value;
+        startTimer(convertTimerToSeconds(timerInput));
+    }
+}
+
+        // Convert mm:ss to seconds
+        function convertTimerToSeconds(timerInput) {
+            const [minutes, seconds] = timerInput.split(':').map(Number);
+            return (minutes * 60) + (seconds || 0);
+        }
+
+        // Event listener for the shuffle button
+document.getElementById('stop-shuffle-btn').addEventListener('click', toggleShuffle);
+
+
+        // Create Groups
+        function createGroups() {
+            const groupSize = parseInt(document.getElementById('group-size').value) || 5;
+            const maxStudentsPerGroup = parseInt(document.getElementById('max-students').value) || 2;
+            const timerInput = document.getElementById('timer-input').value;
+            const professionals = document.getElementById('professionals-input').value.split('\n').map(name => name.trim()).filter(name => name);
+            const students = document.getElementById('students-input').value.split('\n').map(name => name.trim()).filter(name => name);
+
+            // Validate inputs
+            if (professionals.length === 0 || students.length === 0) {
+                alert('Please add both professionals and students.');
+                return;
+            }
+
+            startTimer(convertTimerToSeconds(timerInput));
+
+            // Send AJAX to create groups
+            fetch('/create_groups', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    group_size: groupSize,
+                    max_students_per_group: maxStudentsPerGroup,
+                    professionals: professionals,
+                    students: students,
+                    change_interval: timerInput
+                })
+            })
+            .then(response => response.json())
+            .then(groups => displayGroups(groups))
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Display Groups
+        function displayGroups(groups) {
+            const container = document.getElementById('groups-container');
+            container.innerHTML = '';
+            groups.forEach((group, index) => {
+                const groupElement = document.createElement('div');
+                groupElement.className = 'p-4 bg-gray-200 rounded-lg shadow';
+                groupElement.innerHTML = `<h3 class="text-lg font-bold mb-2">Group ${index + 1}</h3>
+                                          <ul class="list-disc list-inside">${group.map(member => `<li>${member}</li>`).join('')}</ul>`;
+                container.appendChild(groupElement);
+            });
+        }
+
+        // Display Log
+        function displayLog(logs) {
+            const logEntries = document.getElementById('log-entries');
+            logEntries.innerHTML = ''; // Clear log
+
+            logs.forEach(log => {
+                const logRow = `<tr>
+                    <td class="px-6 py-4">${log.time}</td>
+                    <td class="px-6 py-4">${log.group_number}</td>
+                    <td class="px-6 py-4">${log.members}</td>
+                    <td class="px-6 py-4">${log.change_interval}</td>
+                </tr>`;
+                logEntries.innerHTML += logRow;
+            });
+        }
+
+        // Shuffle Groups
+        document.getElementById('shuffle-btn').addEventListener('click', createGroups);
+
+        // Download Log
+        document.getElementById('download-log-btn').addEventListener('click', () => {
+            window.location.href = '/download_log';
+        });
+
+        // Clear Log
+        document.getElementById('clear-log-btn').addEventListener('click', () => {
+            fetch('/clear_log', { method: 'POST' })
+                .then(response => response.json())
+                .then(() => alert('Log Cleared!'))
+                .catch(error => console.error('Error:', error));
+        });
+
+        // Show Log
+        document.getElementById('show-log-btn').addEventListener('click', () => {
+            fetch('/get_log')
+                .then(response => response.json())
+                .then(logs => displayLog(logs))
+                .catch(error => console.error('Error:', error));
+            
+            document.getElementById('log-container').classList.toggle('hidden');
+        });
+
+        document.getElementById('generate-groups-btn').addEventListener('click', async () => {
+            try {
+                // Fetch matching groups from the server
+                const response = await fetch('/matching-groups');
+                const html = await response.text();
+
+                // Inject the response HTML into the container
+                document.getElementById('groups-container').innerHTML = html;
+            } catch (error) {
+                console.error('Error generating groups:', error);
+            }
+        });
+
+        document.getElementById('create-btn').addEventListener('click', createGroups);
+    </script>
+</body>
+</html>
