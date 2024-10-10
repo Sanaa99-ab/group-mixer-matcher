@@ -172,7 +172,8 @@ def refine_feature_matrix(df, domain_weight=3, skill_weight=1):
 
 # Step 2: Clustering Algorithm
 def cluster_by_similarity(features, num_clusters=10):
-    clustering = AgglomerativeClustering(n_clusters=num_clusters, affinity='cosine', linkage='average')
+
+    clustering = AgglomerativeClustering(n_clusters=num_clusters, metric='cosine', linkage='average')
     cluster_labels = clustering.fit_predict(features)
     return cluster_labels
 
